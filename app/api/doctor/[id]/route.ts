@@ -73,13 +73,11 @@ import { NextResponse } from "next/server";
 import connectMongoDB from "@/libs/db";
 import Doctor from "@/models/doctor";
 
-// Explicit context type
-type Context = {
-  params: { id: string };
-};
-
-export async function GET(request: Request, context: Context) {
-  const { id } = context.params;
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
 
   await connectMongoDB();
 
@@ -92,8 +90,11 @@ export async function GET(request: Request, context: Context) {
   return NextResponse.json({ doctor }, { status: 200 });
 }
 
-export async function PUT(request: Request, context: Context) {
-  const { id } = context.params;
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
 
   const {
     name,
