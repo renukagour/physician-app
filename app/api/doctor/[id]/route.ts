@@ -52,19 +52,16 @@ export async function PUT(
   );
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
-
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   await connectMongoDB();
-
-  const doctor = await Doctor.findOne({ _id: id });
-
-  if (!doctor) {
-    return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
+  
+  try {
+    const doctor = await Doctor.findById(params.id);
+    if (!doctor) {
+      return NextResponse.json({ error: "Doctor not found" }, { status: 404 });
+    }
+    return NextResponse.json({ doctor });
+  } catch (error) {
+    return NextResponse.json({ error: "Error fetching doctor" }, { status: 500 });
   }
-
-  return NextResponse.json({ doctor: doctor }, { status: 200 });
 }
