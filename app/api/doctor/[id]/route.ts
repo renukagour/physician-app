@@ -69,7 +69,7 @@
 //   return NextResponse.json({ doctor: doctor }, { status: 200 });
 // }
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import connectMongoDB from "@/libs/db";
 import Doctor from "@/models/doctor";
 
@@ -78,7 +78,7 @@ type Context = {
   params: { id: string };
 };
 
-export async function GET(req: NextRequest, context: Context) {
+export async function GET(request: Request, context: Context) {
   const { id } = context.params;
 
   await connectMongoDB();
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest, context: Context) {
   return NextResponse.json({ doctor }, { status: 200 });
 }
 
-export async function PUT(req: NextRequest, context: Context) {
+export async function PUT(request: Request, context: Context) {
   const { id } = context.params;
 
   const {
@@ -107,7 +107,7 @@ export async function PUT(req: NextRequest, context: Context) {
     visitFee,
     onlineTime,
     visitTime,
-  } = await req.json();
+  } = await request.json();
 
   await connectMongoDB();
 
