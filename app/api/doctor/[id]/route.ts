@@ -60,7 +60,7 @@ export async function GET(
 
   await connectMongoDB();
 
-  const doctor = await Doctor.findOne({ _id: id });
+  const doctor = await Doctor.findById( id );
 
   if (!doctor) {
     return NextResponse.json({ message: "Doctor not found" }, { status: 404 });
