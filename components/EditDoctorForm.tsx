@@ -75,7 +75,7 @@ const EditDoctorForm = ({ doctor }: { doctor: Doctor }) => {
       return;
     }
 
-    const res = await fetch(`https://physician-app-567a-jfnk34m6r-renukagours-projects.vercel.app/api/doctor/${doctor._id}`, {
+    const res = await fetch(`https://physician-app-567a.vercel.app/api/doctor/${doctor._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
