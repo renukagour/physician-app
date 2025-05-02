@@ -1,12 +1,10 @@
 import DoctorCard from "@/components/DoctorsList";
 
-
 export default function Home() {
   return (
-    <div className="">
-  
-<DoctorCard/>
-
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Find Doctors</h1>
+      <DoctorCard />
     </div>
   );
 }
