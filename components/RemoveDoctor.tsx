@@ -8,7 +8,7 @@ const RemoveDoctor = ({ id }: { id: string }) => {
     const removeDoctor = async () => {
         const confirmed = confirm("Are you sure?");
         if (confirmed) {
-            const res = await fetch(`http://localhost:3000/api/doctor?id=${id}`,
+            const res = await fetch(`https://physician-app-567a-jfnk34m6r-renukagours-projects.vercel.app/api/doctor?id=${id}`,
                 {
                     method: "DELETE"
                 }

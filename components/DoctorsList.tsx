@@ -122,7 +122,7 @@ export default function DoctorCard() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/doctor', {
+        const res = await fetch('https://physician-app-567a-jfnk34m6r-renukagours-projects.vercel.app/api/doctor', {
           cache: 'no-store',
         });
 

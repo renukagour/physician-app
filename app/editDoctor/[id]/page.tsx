@@ -3,7 +3,7 @@ import React from 'react';
 
 const getDoctorById = async (id: string) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/doctor/${id}`, {
+    const res = await fetch(`https://physician-app-567a-jfnk34m6r-renukagours-projects.vercel.app/api/doctor/${id}`, {
       cache: 'no-store',
     });
 

@@ -100,7 +100,7 @@ export default function AddDoctorPage() {
     setMessage('');
 
     try {
-      const res = await fetch('http://localhost:3000/api/doctors/add', {
+      const res = await fetch('https://physician-app-567a-jfnk34m6r-renukagours-projects.vercel.app/api/doctors/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
