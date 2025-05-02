@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 // 'use client';
 
 // import Image from 'next/image';
@@ -96,7 +97,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Link from 'next/link';
 import {  HiPencilAlt } from 'react-icons/hi';
 import RemoveDoctor from './RemoveDoctor';
@@ -146,7 +147,7 @@ export default function DoctorCard() {
         <div key={d._id} className="flex justify-between border rounded-xl shadow p-4 my-4 bg-white w-full max-w-3xl">
           {/* Left */}
           <div className="flex items-start gap-4">
-            <Image
+            <img
               src={d.imageUrl}
               alt={d.name}
               width={64}
