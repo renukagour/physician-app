@@ -1,6 +1,6 @@
 'use client';
 
-// import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 // Filter interface
 export interface DoctorFilters {
@@ -74,6 +74,16 @@ export default function DoctorFilters({ filters, setFilters }: FiltersProps) {
             }
         });
     };
+
+    const [showAllCities, setShowAllCities] = useState(false);
+
+    const allCities = [
+        'Hyderabad', 'Bangalore', 'Mumbai', 'Ahmedabad', 'Lucknow',
+        'Chandigarh', 'Nagpur', 'Jaipur', 'Bhopal', 'Visakhapatnam',
+        'Thiruvananthapuram', 'Indore'
+    ];
+
+    const visibleCities = showAllCities ? allCities : allCities.slice(0, 5);
 
     return (
         <div className="p-4 border rounded-lg shadow-sm bg-white">
@@ -157,7 +167,7 @@ export default function DoctorFilters({ filters, setFilters }: FiltersProps) {
             </div>
 
             {/* City */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
                 <h3 className="font-medium mb-2 text-gray-800">City</h3>
                 <FilterCheckbox
                     id="city-hyderabad"
@@ -177,7 +187,6 @@ export default function DoctorFilters({ filters, setFilters }: FiltersProps) {
                     checked={filters.city.includes('Mumbai')}
                     onChange={() => toggleFilter('city', 'Mumbai')}
                 />
-                <h3 className="font-medium mb-2 text-gray-800">City</h3>
                 <FilterCheckbox
                     id="city-ahmedabad"
                     label="Ahmedabad"
@@ -238,8 +247,27 @@ export default function DoctorFilters({ filters, setFilters }: FiltersProps) {
                     checked={filters.city.includes('Indore')}
                     onChange={() => toggleFilter('city', 'Indore')}
                 />
-            </div>
+            </div> */}
 
+            <div className="mb-4">
+                <h3 className="font-medium mb-2 text-gray-800">City</h3>
+                {visibleCities.map((city) => (
+                    <FilterCheckbox
+                        key={city}
+                        id={`city-${city.toLowerCase()}`}
+                        label={city}
+                        checked={filters.city.includes(city)}
+                        onChange={() => toggleFilter('city', city)}
+                    />
+                ))}
+                <button
+                    type="button"
+                    onClick={() => setShowAllCities(!showAllCities)}
+                    className="mt-2 text-sm text-teal-600 hover:underline"
+                >
+                    {showAllCities ? 'Show Less' : 'Show More'}
+                </button>
+            </div>
             {/* Apply Filters Button */}
             {/* <button
                 onClick={applyFilters}
