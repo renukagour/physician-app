@@ -41,7 +41,6 @@ const FilterCheckbox = ({
 interface FiltersProps {
     filters: DoctorFilters;
     setFilters: React.Dispatch<React.SetStateAction<DoctorFilters>>;
-    applyFilters: () => void;
 }
 
 export default function DoctorFilters({ filters, setFilters }: FiltersProps) {

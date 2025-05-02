@@ -7,6 +7,7 @@ import Link from 'next/link';
 import {  HiPencilAlt } from 'react-icons/hi';
 import RemoveDoctor from './RemoveDoctor';
 import DoctorFilters, { DoctorFilters as FiltersType } from './DoctorFilters';
+import Pagination from './Pagination';
 
 interface Doctor {
   _id: string;
@@ -34,6 +35,21 @@ export default function DoctorCard() {
     city: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [doctorsPerPage] = useState(5); // Adjust as needed
+
+  // Calculate current doctors for pagination
+  const indexOfLastDoctor = currentPage * doctorsPerPage;
+  const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
+  const currentDoctors = filteredDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
+  const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo(0, 0);
+  };
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -120,6 +136,7 @@ export default function DoctorCard() {
   // Apply filters whenever filters change
   useEffect(() => {
     applyFilters();
+    setCurrentPage(1); // Reset to first page when filters change
   }, [filters]); // Re-run whenever filters change
 
   if (isLoading) {
@@ -133,7 +150,6 @@ export default function DoctorCard() {
         <DoctorFilters 
           filters={filters} 
           setFilters={setFilters} 
-          applyFilters={applyFilters} 
         />
       </div>
 
@@ -144,56 +160,70 @@ export default function DoctorCard() {
             No doctors found matching your filters.
           </div>
         ) : (
-          filteredDoctors.map((d) => (
-            <div key={d._id} className="flex justify-between border rounded-xl shadow p-4 my-4 bg-white w-full">
-              {/* Left */}
-              <div className="flex items-start gap-4">
-                <img
-                  src={d.imageUrl}
-                  alt={d.name}
-                  width={64}
-                  height={64}
-                  className="rounded-md object-cover"
-                />
-                <div>
-                  <h2 className="text-lg font-semibold">{d.name}</h2>
-                  <p className="text-sm text-gray-600">{d.specialty}</p>
-                  <p className="text-sm text-purple-700 font-semibold">
-                    {d.experience} YEARS • {d.qualification}
-                  </p>
-                  <p className="text-sm text-gray-600">{d.city}</p>
-                  <p className="text-sm text-gray-500">{d.clinic}, {d.city}</p>
-                </div>
-              </div>
-
-              {/* Right */}
-              <div className="flex flex-col justify-between items-center gap-3">
-                <div className="flex justify-between items-center gap-24">
-                  <p className="font-semibold">₹{d.onlineFee}</p>
-                  <p className="font-semibold">₹{d.visitFee}</p>
-                </div>
-
-                <div className="flex gap-2">
-                  <button className="border border-teal-600 text-teal-700 text-sm px-4 py-1 rounded-md">
-                    Consult Online
-                    <div className="text-xs text-gray-500">Available at {d.onlineTime}</div>
-                  </button>
-                  <button className="bg-teal-700 text-white text-sm px-4 py-1 rounded-md">
-                    Visit Doctor
-                    <div className="text-xs text-gray-100">Available in {d.visitTime}</div>
-                  </button>
-                </div>
-
-                {/* Edit & Delete Buttons */}
-                <div className="flex gap-2">
-                  <Link href={`/editDoctor/${d._id}`}>
-                    <HiPencilAlt size={20} className="text-blue-600 hover:text-blue-800 cursor-pointer" />
-                  </Link>
-                  <RemoveDoctor id={d._id}/>
-                </div>
-              </div>
+          <>
+            <div className="text-sm text-gray-500 mb-2">
+              Showing {indexOfFirstDoctor + 1}-{Math.min(indexOfLastDoctor, filteredDoctors.length)} of {filteredDoctors.length} doctors
             </div>
-          ))
+            
+            {currentDoctors.map((d) => (
+              <div key={d._id} className="flex justify-between border rounded-xl shadow p-4 my-4 bg-white w-full">
+                {/* Left */}
+                <div className="flex items-start gap-4">
+                  <img
+                    src={d.imageUrl}
+                    alt={d.name}
+                    width={64}
+                    height={64}
+                    className="rounded-md object-cover"
+                  />
+                  <div>
+                    <h2 className="text-lg font-semibold">{d.name}</h2>
+                    <p className="text-sm text-gray-600">{d.specialty}</p>
+                    <p className="text-sm text-purple-700 font-semibold">
+                      {d.experience} YEARS • {d.qualification}
+                    </p>
+                    <p className="text-sm text-gray-600">{d.city}</p>
+                    <p className="text-sm text-gray-500">{d.clinic}, {d.city}</p>
+                  </div>
+                </div>
+
+                {/* Right */}
+                <div className="flex flex-col justify-between items-center gap-3">
+                  <div className="flex justify-between items-center gap-24">
+                    <p className="font-semibold">₹{d.onlineFee}</p>
+                    <p className="font-semibold">₹{d.visitFee}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button className="border border-teal-600 text-teal-700 text-sm px-4 py-1 rounded-md">
+                      Consult Online
+                      <div className="text-xs text-gray-500">Available at {d.onlineTime}</div>
+                    </button>
+                    <button className="bg-teal-700 text-white text-sm px-4 py-1 rounded-md">
+                      Visit Doctor
+                      <div className="text-xs text-gray-100">Available in {d.visitTime}</div>
+                    </button>
+                  </div>
+
+                  {/* Edit & Delete Buttons */}
+                  <div className="flex gap-2">
+                    <Link href={`/editDoctor/${d._id}`}>
+                      <HiPencilAlt size={20} className="text-blue-600 hover:text-blue-800 cursor-pointer" />
+                    </Link>
+                    <RemoveDoctor id={d._id}/>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {totalPages > 1 && (
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
