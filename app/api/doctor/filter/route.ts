@@ -3,8 +3,19 @@ import connectMongoDB from "@/libs/db";
 import Doctor from "@/models/doctor";
 import { NextResponse, NextRequest } from "next/server";
 
+// Define more specific query type
+interface FilterQuery {
+  onlineFee?: { $gt: number } | { $gte: number, $lte: number };
+  visitFee?: { $gt: number };
+  experience?: { $gte: number, $lte: number } | { $gte: number };
+  city?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
+    // Log request for debugging
+    console.log('Filter API called, URL:', request.url);
+    
     await connectMongoDB();
 
     const searchParams = request.nextUrl.searchParams;
@@ -15,13 +26,23 @@ export async function GET(request: NextRequest) {
     const feesRange = searchParams.get("fees"); // "100-500", "500-1000", "1000+"
     const city = searchParams.get("city"); // City name
     
+    // Log search parameters for debugging
+    console.log('Filter params:', { 
+      modeOfConsult, 
+      experienceRange, 
+      feesRange, 
+      city,
+      page: searchParams.get("page"),
+      limit: searchParams.get("limit")
+    });
+    
     // Get pagination parameters
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "5");
     const skip = (page - 1) * limit;
     
     // Build query object
-    const query: Record<string, any> = {};
+    const query: FilterQuery = {};
     
     // Add mode of consult filter
     if (modeOfConsult) {
@@ -60,6 +81,9 @@ export async function GET(request: NextRequest) {
     if (city) {
       query.city = city;
     }
+
+    // Log the constructed query for debugging
+    console.log('MongoDB query:', JSON.stringify(query));
     
     // Count total documents for pagination info
     const totalDocs = await Doctor.countDocuments(query);
@@ -69,6 +93,9 @@ export async function GET(request: NextRequest) {
     const doctors = await Doctor.find(query)
       .skip(skip)
       .limit(limit);
+    
+    // Log result counts for debugging
+    console.log(`Found ${doctors.length} doctors out of ${totalDocs} total matches`);
     
     // Return data with pagination info
     return NextResponse.json({

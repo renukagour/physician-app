@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { HiPencilAlt } from 'react-icons/hi';
+import { useRouter, useSearchParams } from 'next/navigation';
 import RemoveDoctor from './RemoveDoctor';
 import DoctorFilters, { DoctorFilters as FiltersType } from './DoctorFilters';
 import Pagination from './Pagination';
@@ -30,6 +31,9 @@ interface PaginationInfo {
 }
 
 export default function FilteredDoctorsList() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filters, setFilters] = useState<FiltersType>({
     modeOfConsult: [],
@@ -45,6 +49,59 @@ export default function FilteredDoctorsList() {
     limit: 5,
     totalPages: 0
   });
+  const [lastApiUrl, setLastApiUrl] = useState<string>('');
+  const [debugMode, setDebugMode] = useState(false);
+
+  // Initialize filters from URL on first load
+  useEffect(() => {
+    const modeOfConsult = searchParams.get('modeOfConsult');
+    const experience = searchParams.get('experience');
+    const fees = searchParams.get('fees');
+    const city = searchParams.get('city');
+    const page = searchParams.get('page');
+    
+    const initialFilters: FiltersType = {
+      modeOfConsult: modeOfConsult ? [modeOfConsult] : [],
+      experience: experience ? [experience] : [],
+      fees: fees ? [fees] : [],
+      city: city ? [city] : []
+    };
+    
+    setFilters(initialFilters);
+    if (page) {
+      setCurrentPage(parseInt(page));
+    }
+  }, [searchParams]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    // Skip on initial render
+    if (isLoading && doctors.length === 0) return;
+    
+    const params = new URLSearchParams();
+    
+    if (filters.modeOfConsult.length > 0) {
+      params.append('modeOfConsult', filters.modeOfConsult[0]);
+    }
+    
+    if (filters.experience.length > 0) {
+      params.append('experience', filters.experience[0]);
+    }
+    
+    if (filters.fees.length > 0) {
+      params.append('fees', filters.fees[0]);
+    }
+    
+    if (filters.city.length > 0) {
+      params.append('city', filters.city[0]);
+    }
+    
+    params.append('page', currentPage.toString());
+    
+    // Update URL without causing a navigation
+    const url = `/filtered${params.toString() ? '?' + params.toString() : ''}`;
+    router.push(url, { scroll: false });
+  }, [filters, currentPage, isLoading, doctors.length, router]);
 
   // Fetch filtered doctors using the API
   useEffect(() => {
@@ -59,7 +116,7 @@ export default function FilteredDoctorsList() {
         queryParams.append('limit', '5');
         
         // Add mode of consult filter
-        if (filters.modeOfConsult.length === 1) {
+        if (filters.modeOfConsult.length > 0) {
           queryParams.append('modeOfConsult', filters.modeOfConsult[0]);
         }
         
@@ -78,8 +135,17 @@ export default function FilteredDoctorsList() {
           queryParams.append('city', filters.city[0]);
         }
         
+        // Save the API URL for debugging
+        const apiUrl = `https://physician-app-567a.vercel.app/api/doctor/filter?${queryParams.toString()}`;
+        setLastApiUrl(apiUrl);
+        
+        if (debugMode) {
+          console.log('Fetching from:', apiUrl);
+          console.log('Current filters:', filters);
+        }
+        
         // Make the API request
-        const res = await fetch(`https://physician-app-567a.vercel.app/api/doctor/filter?${queryParams.toString()}`, {
+        const res = await fetch(apiUrl, {
           cache: 'no-store',
         });
 
@@ -88,6 +154,11 @@ export default function FilteredDoctorsList() {
         }
 
         const data = await res.json();
+        
+        if (debugMode) {
+          console.log('Response data:', data);
+        }
+        
         setDoctors(data.doctors || []);
         setPaginationInfo(data.pagination || {
           total: 0,
@@ -103,12 +174,23 @@ export default function FilteredDoctorsList() {
     };
 
     fetchFilteredDoctors();
-  }, [filters, currentPage]);
+  }, [filters, currentPage, debugMode]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo(0, 0);
   };
+  
+  // Toggle debug mode
+  const toggleDebugMode = () => {
+    setDebugMode(prev => !prev);
+  };
+
+  // Count active filters
+  const activeFilterCount = Object.values(filters).reduce(
+    (count, filterArray) => count + filterArray.length,
+    0
+  );
 
   if (isLoading) {
     return <div className="text-center py-10">Loading doctors...</div>;
@@ -122,6 +204,28 @@ export default function FilteredDoctorsList() {
           filters={filters} 
           setFilters={setFilters} 
         />
+        
+        {/* Debug tools - hidden in production */}
+        <div className="mt-4 p-3 border border-gray-200 rounded-lg">
+          <button 
+            onClick={toggleDebugMode} 
+            className="text-xs text-gray-500 hover:text-gray-800"
+          >
+            {debugMode ? 'Disable Debug Mode' : 'Enable Debug Mode'}
+          </button>
+          
+          {debugMode && (
+            <div className="mt-2 text-xs">
+              <div className="font-semibold">Last API URL:</div>
+              <div className="break-all text-gray-600">{lastApiUrl}</div>
+              
+              <div className="font-semibold mt-2">Active Filters:</div>
+              <pre className="bg-gray-100 p-1 rounded overflow-auto max-h-20">
+                {JSON.stringify(filters, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Doctors list */}
@@ -131,6 +235,18 @@ export default function FilteredDoctorsList() {
           <p className="text-sm text-blue-600">
             This page uses the server-side <code className="bg-blue-100 px-1 rounded">/api/doctor/filter</code> endpoint for filtering and pagination.
           </p>
+          
+          {activeFilterCount > 0 && (
+            <div className="mt-2 pt-2 border-t border-blue-200">
+              <p className="text-sm text-blue-700">
+                <span className="font-semibold">Active filters:</span> {activeFilterCount}
+                {filters.city.length > 0 && ` • City: ${filters.city.join(', ')}`}
+                {filters.experience.length > 0 && ` • Experience: ${filters.experience.join(', ')}`}
+                {filters.fees.length > 0 && ` • Fees: ${filters.fees.join(', ')}`}
+                {filters.modeOfConsult.length > 0 && ` • Mode: ${filters.modeOfConsult.join(', ')}`}
+              </p>
+            </div>
+          )}
         </div>
 
         {doctors.length === 0 ? (
