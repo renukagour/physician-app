@@ -34,7 +34,7 @@ This project is a clone of the Apollo247 General Physician/Internal Medicine des
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/physician-app.git
+git clone https://github.com/renukagour/physician-app.git
 cd physician-app
 ```
 
@@ -152,13 +152,4 @@ The project includes two different implementations of doctor filtering:
 - **API**: RESTful endpoints for CRUD operations and filtering
 - **Deployment**: Successfully deployed to Vercel with MongoDB Atlas integration
 
-## Submission
 
-- **Assignment**: Apollo247 General Physician Destination Page Clone
-- **Submitted by**: [Your Name]
-- **Deadline**: 03 May, 2025
-- **Live Demo**: [https://physician-app-567a.vercel.app](https://physician-app-567a.vercel.app)
-
----
-
-**Thank you for reviewing my submission!**

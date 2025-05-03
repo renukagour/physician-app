@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { HiPencilAlt } from 'react-icons/hi';
-import { useRouter, useSearchParams } from 'next/navigation';
 import RemoveDoctor from './RemoveDoctor';
 import DoctorFilters, { DoctorFilters as FiltersType } from './DoctorFilters';
 import Pagination from './Pagination';
@@ -31,8 +31,8 @@ interface PaginationInfo {
 }
 
 export default function FilteredDoctorsList() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  // State for router and searchParams
+  const [router, setRouter] = useState<{ push?: (url: string, options?: { scroll: boolean }) => void } | null>(null);
   
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filters, setFilters] = useState<FiltersType>({
@@ -51,56 +51,79 @@ export default function FilteredDoctorsList() {
   });
   const [lastApiUrl, setLastApiUrl] = useState<string>('');
   const [debugMode, setDebugMode] = useState(false);
-
-  // Initialize filters from URL on first load
+  
+  // Initialize router and searchParams after component mounts
   useEffect(() => {
-    const modeOfConsult = searchParams.get('modeOfConsult');
-    const experience = searchParams.get('experience');
-    const fees = searchParams.get('fees');
-    const city = searchParams.get('city');
-    const page = searchParams.get('page');
-    
-    const initialFilters: FiltersType = {
-      modeOfConsult: modeOfConsult ? [modeOfConsult] : [],
-      experience: experience ? [experience] : [],
-      fees: fees ? [fees] : [],
-      city: city ? [city] : []
+    // Safe way to import client-side only modules
+    const setupClientNavigation = async () => {
+      const navigation = await import('next/navigation');
+      // Get the router instance
+      const routerInstance = navigation.useRouter ? navigation.useRouter() : null;
+      setRouter(routerInstance);
+      
+      // Get search params
+      try {
+        const params = navigation.useSearchParams ? navigation.useSearchParams() : null;
+        
+        // Initialize filters from URL if params exist
+        if (params) {
+          const modeOfConsult = params.get('modeOfConsult');
+          const experience = params.get('experience');
+          const fees = params.get('fees');
+          const city = params.get('city');
+          const page = params.get('page');
+          
+          const initialFilters: FiltersType = {
+            modeOfConsult: modeOfConsult ? [modeOfConsult] : [],
+            experience: experience ? [experience] : [],
+            fees: fees ? [fees] : [],
+            city: city ? [city] : []
+          };
+          
+          setFilters(initialFilters);
+          if (page) {
+            setCurrentPage(parseInt(page));
+          }
+        }
+      } catch (error) {
+        console.error('Error setting up search params:', error);
+      }
     };
     
-    setFilters(initialFilters);
-    if (page) {
-      setCurrentPage(parseInt(page));
-    }
-  }, [searchParams]);
+    setupClientNavigation();
+  }, []);
 
   // Update URL when filters change
   useEffect(() => {
-    // Skip on initial render
-    if (isLoading && doctors.length === 0) return;
+    if (!router || isLoading || doctors.length === 0) return;
     
-    const params = new URLSearchParams();
-    
-    if (filters.modeOfConsult.length > 0) {
-      params.append('modeOfConsult', filters.modeOfConsult[0]);
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters.modeOfConsult.length > 0) {
+        params.append('modeOfConsult', filters.modeOfConsult[0]);
+      }
+      
+      if (filters.experience.length > 0) {
+        params.append('experience', filters.experience[0]);
+      }
+      
+      if (filters.fees.length > 0) {
+        params.append('fees', filters.fees[0]);
+      }
+      
+      if (filters.city.length > 0) {
+        params.append('city', filters.city[0]);
+      }
+      
+      params.append('page', currentPage.toString());
+      
+      // Update URL without causing a navigation
+      const url = `/filtered${params.toString() ? '?' + params.toString() : ''}`;
+      router.push?.(url, { scroll: false });
+    } catch (error) {
+      console.error('Error updating URL:', error);
     }
-    
-    if (filters.experience.length > 0) {
-      params.append('experience', filters.experience[0]);
-    }
-    
-    if (filters.fees.length > 0) {
-      params.append('fees', filters.fees[0]);
-    }
-    
-    if (filters.city.length > 0) {
-      params.append('city', filters.city[0]);
-    }
-    
-    params.append('page', currentPage.toString());
-    
-    // Update URL without causing a navigation
-    const url = `/filtered${params.toString() ? '?' + params.toString() : ''}`;
-    router.push(url, { scroll: false });
   }, [filters, currentPage, isLoading, doctors.length, router]);
 
   // Fetch filtered doctors using the API
